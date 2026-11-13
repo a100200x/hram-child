@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расписание | Храм Младенцев Вифлеемских</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #1a2e44; --navy-light: #2c4562; --cream: #f7f3ec; --cream-dark: #ede6d9;
+            --gold: #b8944d; --gold-light: #d4b87a; --text: #2e2e2e; --text-muted: #6b6b6b;
+            --white: #ffffff; --radius: 12px; --shadow: 0 10px 30px rgba(26, 46, 68, 0.08);
+            --header-h: 80px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Open Sans', sans-serif; color: var(--text); background-color: var(--cream); line-height: 1.7; display: flex; flex-direction: column; min-height: 100vh; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+        h1, h2, h3, h4 { font-family: 'PT Serif', serif; color: var(--navy); line-height: 1.25; }
+        a { color: var(--gold); text-decoration: none; transition: color 0.25s ease; }
+        .container { width: 100%; max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+
+        .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(247, 243, 236, 0.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(26, 46, 68, 0.08); transition: box-shadow 0.3s ease; }
+        .site-header.scrolled { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06); }
+        .header-inner { display: flex; align-items: center; justify-content: space-between; min-height: var(--header-h); gap: 24px; }
+        .logo { display: flex; flex-direction: column; flex-shrink: 0; text-align: left; }
+        .logo-title { font-family: 'PT Serif', serif; font-size: 16px; font-weight: 700; color: var(--navy); line-height: 1.25; }
+        .logo-sub { font-size: 10px; color: var(--text-muted); letter-spacing: 0.3px; margin-top: 3px; }
+        .main-nav { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+        .main-nav a { font-size: 14px; color: var(--navy); padding: 8px 14px; border-radius: 6px; transition: background 0.2s ease; white-space: nowrap; }
+        .main-nav a:hover { background: rgba(26, 46, 68, 0.05); }
+
+        .header-actions { display: flex; align-items: center; gap: 16px; }
+        .live-btn {
+            display: inline-flex; align-items: center; gap: 8px; background: var(--navy); color: var(--white) !important;
+            padding: 8px 16px; border-radius: 50px; font-size: 13px; font-weight: 600;
+            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 10px rgba(26, 46, 68, 0.15); white-space: nowrap;
+        }
+        .live-btn:hover { background: var(--gold); transform: translateY(-1px); box-shadow: 0 6px 15px rgba(184, 148, 77, 0.3); }
+        .live-dot { width: 8px; height: 8px; background-color: #ff4d4d; border-radius: 50%; animation: pulse 1.5s infinite; flex-shrink: 0; }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(255, 77, 77, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
+        }
+
+        .nav-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; flex-direction: column; gap: 5px; z-index: 1001; }
+        .nav-toggle span { display: block; width: 24px; height: 2px; background: var(--navy); border-radius: 2px; transition: 0.3s ease; }
+        .nav-toggle.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .nav-toggle.active span:nth-child(2) { opacity: 0; }
+        .nav-toggle.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+        .page-content { flex: 1; margin-top: var(--header-h); padding: 40px 0 80px; background-color: var(--cream); }
+        .schedule-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
+        .week-title { text-align: center; color: #d14b4b; font-family: 'PT Serif', serif; font-size: 1.4rem; margin-bottom: 15px; font-weight: 700; }
+        .schedule-table { width: 100%; border-collapse: collapse; background: var(--white); border: 1px solid #ccc; }
+        .schedule-table th, .schedule-table td { border: 1px solid #ccc; padding: 10px; text-align: center; vertical-align: middle; font-size: 14px; line-height: 1.4; }
+        .schedule-table td:first-child { font-weight: 600; width: 30%; text-align: left; }
+        .schedule-table td:last-child { width: 15%; font-weight: 600; }
+        .schedule-table .red-text { color: #d14b4b; font-weight: 700; }
+        .schedule-table .bold-text { font-weight: 700; }
+
+        .site-footer { background: var(--navy); color: rgba(255, 255, 255, 0.7); padding: 48px 0 32px; font-size: 14px; position: relative; z-index: 2; }
+        .footer-inner { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 32px; margin-bottom: 32px; }
+        .footer-brand .logo-title { color: var(--white); font-size: 17px; }
+        .footer-brand .logo-sub { color: rgba(255, 255, 255, 0.5); }
+        .footer-brand p { margin-top: 12px; max-width: 320px; color: rgba(255, 255, 255, 0.5); font-size: 13px; }
+        .footer-links { display: flex; gap: 32px; flex-wrap: wrap; }
+        .footer-links a { color: rgba(255, 255, 255, 0.65); font-size: 14px; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--gold-light); }
+        .footer-bottom { border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 24px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; color: rgba(255, 255, 255, 0.4); font-size: 13px; }
+
+        @media (max-width: 900px) {
+            .main-nav { display: none; }
+            .nav-toggle { display: flex; }
+        }
+        @media (max-width: 900px) { .schedule-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 820px) { .logo-title { font-size: 14px; } }
+        @media (max-width: 720px) {
+            :root { --header-h: 72px; }
+            .main-nav { display: flex; position: fixed; top: 0; right: 0; width: 280px; height: 100vh; background: var(--cream); flex-direction: column; align-items: stretch; padding: calc(var(--header-h) + 16px) 24px 32px; gap: 4px; box-shadow: -8px 0 30px rgba(0, 0, 0, 0.1); transform: translateX(100%); transition: transform 0.35s ease; overflow-y: auto; z-index: 999; }
+            .main-nav.open { transform: translateX(0); }
+            .main-nav a { padding: 12px 16px; font-size: 15px; }
+            .footer-inner { flex-direction: column; }
+            .page-content { padding: 20px 0 56px; }
+            .schedule-table th, .schedule-table td { padding: 8px; font-size: 13px; }
+            .week-title { font-size: 1.2rem; }
+        }
+        @media (max-width: 500px) {
+            .live-text { display: none; }
+            .live-btn { padding: 10px; }
+            .logo-title { font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="site-header" id="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo" aria-label="На главную">
+                <span class="logo-title">Храм Святых Мучеников<br>Младенцев Вифлеемских</span>
+                <span class="logo-sub">Официальный сайт</span>
+            </a>
+            <nav class="main-nav" id="mainNav" aria-label="Основная навигация">
+                <a href="about.html">О храме</a>
+                <a href="schedule.html">Расписание</a>
+                <a href="school.html">Воскресная школа</a>
+                <a href="help.html">Помощь храму</a>
+                <a href="contacts.html">Контакты</a>
+            </nav>
+            <div class="header-actions">
+                <a href="https://vk.ru/hramchild" target="_blank" rel="noopener" class="live-btn" title="Онлайн-трансляция">
+                    <span class="live-dot"></span> <span class="live-text">Трансляция</span>
+                </a>
+                <button class="nav-toggle" id="navToggle" aria-label="Открыть меню" aria-expanded="false">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <div class="container">
+            <div class="schedule-grid">
+                <!-- Седмица 24-я -->
+                <div>
+                    <h2 class="week-title">Седмица 24-я по Пятидесятнице</h2>
+                    <table class="schedule-table">
+                        <tbody>
+                            <tr><td>Понедельник<br>9.11</td><td>Мч. Нестора Солунского</td><td>-</td></tr>
+                            <tr><td>Вторник<br>10.11</td><td>Вмц. Параскевы<br>Литургия</td><td>09:30</td></tr>
+                            <tr><td>Среда<br>11.11</td><td>Прмц. Анастасии Римляныни<br>Литургия</td><td>09:30</td></tr>
+                            <tr><td>Четверг<br>12.11</td><td>Сщмч. Зиновия, еп. Егейского<br>Литургия</td><td>09:30</td></tr>
+                            <tr><td>Пятница<br>13.11</td><td>Апп. От 70-ти Стахия, Амплия, Урвана, Наркисса, Апеллия и Аристовула<br>Литургия</td><td>09:30</td></tr>
+                            <tr><td style="border-top: none;"></td><td style="border-top: none;">Акафист святителю Луке Крымскому</td><td>18:00</td></tr>
+                            <tr><td>Суббота<br>14.11</td><td>Бессребреников и чудотворцев Космы и Дамиана Асийских<br>Литургия</td><td>09:30</td></tr>
+                            <tr><td style="border-top: none;"></td><td style="border-top: none;" class="red-text">Всенощное бдение</td><td class="red-text">18:00</td></tr>
+                            <tr><td rowspan="4">Воскресенье<br>15.11</td><td class="red-text">Неделя 24-я по Пятидесятнице.<br>Глас 7-й</td><td rowspan="2">06:30</td></tr>
+                            <tr><td>Мчч. Акиндина, Пигасия и иже с ними<br>Ранняя Литургия</td></tr>
+                            <tr><td style="border-top: none;" class="red-text">Поздняя Литургия</td><td>09:30</td></tr>
+                            <tr><td style="border-top: none;">Акафист Пресвятой Богородице</td><td>18:00</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Седмица 25-я -->
+                <div>
+                    <h2 class="week-title">Седмица 25-я по Пятидесятнице</h2>
+                    <table class="schedule-table">
+                        <tbody>
+                            <tr><td>Понедельник<br>16.11</td><td>Мч. Акепсима епископа</td><td>-</td></tr>
+                            <tr><td>Вторник<br>17.11</td><td>Прп. Иоанникия Великого<br>Литургия</td><td>09:30</td></tr>
+                            <tr><td>Среда<br>18.11</td><td>Мчч. Галактиона и Епистимии<br>Литургия</td><td>09:30</td></tr>
+                            <tr><td>Четверг<br>19.11</td><td>Прп. Варлаама Хутынского<br>Литургия</td><td>09:30</td></tr>
+                            <tr><td>Пятница<br>20.11</td><td>Мучеников в Мелитине<br>Литургия</td><td>09:30</td></tr>
+                            <tr><td style="border-top: none;"></td><td style="border-top: none;" class="bold-text">Полиелей</td><td class="bold-text">18:00</td></tr>
+                            <tr><td>Суббота<br>21.11</td><td class="bold-text">Собор Архистратига Михаила и прочих Небесных Сил бесплотных<br>Литургия</td><td>09:30</td></tr>
+                            <tr><td style="border-top: none;"></td><td style="border-top: none;" class="red-text">Всенощное бдение</td><td class="red-text">18:00</td></tr>
+                            <tr><td rowspan="4">Воскресенье<br>22.11</td><td class="red-text">Неделя 25-я по Пятидесятнице.<br>Глас 8-й<br>Иконы Божией Матери «Скоропослушница»<br>Ранняя Литургия</td><td>06:30</td></tr>
+                            <tr><td style="border-top: none;" class="red-text">Поздняя Литургия</td><td>09:30</td></tr>
+                            <tr><td style="border-top: none;">Акафист святителю Николаю</td><td>18:00</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-inner">
+                <div class="footer-brand">
+                    <span class="logo-title" style="display:block; font-family:'PT Serif',serif; font-size:17px;">Храм Святых Мучеников Младенцев Вифлеемских</span>
+                    <span class="logo-sub">Санкт-Петербургская Епархия</span>
+                    <p>Русская Православная Церковь. Московский Патриархат. Приход храма во имя святых мучеников младенцев Вифлеемских.</p>
+                </div>
+                <div class="footer-links">
+                    <a href="about.html">О храме</a>
+                    <a href="schedule.html">Расписание</a>
+                    <a href="school.html">Воскресная школа</a>
+                    <a href="help.html">Помощь храму</a>
+                    <a href="contacts.html">Контакты</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>© 2007 – 2026 Приход храма Святых Мучеников Младенцев Вифлеемских</span>
+                <span>Сделано с верой и заботой о каждом</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const toggle = document.getElementById('navToggle');
+        const nav = document.getElementById('mainNav');
+        const header = document.getElementById('header');
+        toggle.addEventListener('click', () => {
+            const isOpen = nav.classList.toggle('open');
+            toggle.classList.toggle('active');
+            toggle.setAttribute('aria-expanded', isOpen);
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+        });
+        window.addEventListener('scroll', () => {
+            header.classList.toggle('scrolled', window.scrollY > 20);
+        }, { passive: true });
+    </script>
+</body>
+</html>
